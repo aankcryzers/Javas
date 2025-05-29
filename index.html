@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Form Monitoring Performa Unit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2196F3">
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 10px; }
+    label { display: block; margin-top: 12px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 20px; padding: 10px 20px; background-color: #2196F3; color: white; border: none; cursor: pointer; }
+    h2 { margin-top: 40px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Form Monitoring Performa Unit</h1>
+
+  <h2>Data Operasional Harian</h2>
+  <form id="operasionalForm">
+    <label>Tanggal:
+      <input type="date" name="tanggal" required>
+    </label>
+    <label>Nama Unit:
+      <input type="text" name="unit" required>
+    </label>
+    <label>Total Jam Operasi:
+      <input type="number" step="0.01" name="operasi" required>
+    </label>
+    <label>Total Jam Delay:
+      <input type="number" step="0.01" name="delay" required>
+    </label>
+    <label>Total Jam Breakdown:
+      <input type="number" step="0.01" name="breakdown" required>
+    </label>
+    <label>Jumlah Breakdown:
+      <input type="number" name="jml_breakdown" required>
+    </label>
+    <label>Produksi Aktual (ton):
+      <input type="number" step="0.01" name="produksi" required>
+    </label>
+    <label>Produksi Hilang (ton):
+      <input type="number" step="0.01" name="hilang" required>
+    </label>
+    <label>Konsumsi BBM (liter):
+      <input type="number" step="0.01" name="bbm" required>
+    </label>
+    <button type="submit">Kirim Data Operasional</button>
+  </form>
+
+  <h2>Data Detail Breakdown</h2>
+  <form id="breakdownForm">
+    <label>Tanggal:
+      <input type="date" name="tanggal" required>
+    </label>
+    <label>Nama Unit:
+      <input type="text" name="unit" required>
+    </label>
+    <label>Jam Mulai Breakdown:
+      <input type="time" name="mulai" required>
+    </label>
+    <label>Jam Selesai Breakdown:
+      <input type="time" name="selesai" required>
+    </label>
+    <label>Jenis Breakdown:
+      <select name="jenis">
+        <option>Engine</option>
+        <option>Hydraulic</option>
+        <option>Elektrikal</option>
+        <option>Powertrain</option>
+        <option>Lainnya</option>
+      </select>
+    </label>
+    <label>Spare Part Diganti:
+      <textarea name="sparepart" rows="2" placeholder="Contoh: Fan Belt, Oil Filter"></textarea>
+    </label>
+    <label>Biaya Spare Part (Rp):
+      <input type="number" step="0.01" name="biaya_sparepart" required>
+    </label>
+    <label>Nama Teknisi:
+      <input type="text" name="teknisi">
+    </label>
+    <label>Produksi Hilang karena Breakdown (ton):
+      <input type="number" step="0.01" name="hilang_bd" required>
+    </label>
+    <button type="submit">Kirim Data Breakdown</button>
+  </form>
+
+  <p id="status" style="margin-top: 20px;"></p>
+
+  <script>
+    const URL = "https://script.google.com/macros/s/AKfycbyR70ynkaxmyHscCuRSRvRIQACAd3YbZBRR5osj1nRA0a9aNa9jFZGll5N99LxWAA3w/exec";
+
+    async function postData(form, data) {
+      try {
+        const res = await fetch(URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    document.getElementById('operasionalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const data = {
+        type: 'operasional',
+        tanggal: f.tanggal.value,
+        unit: f.unit.value,
+        operasi: f.operasi.value,
+        delay: f.delay.value,
+        breakdown: f.breakdown.value,
+        jml_breakdown: f.jml_breakdown.value,
+        produksi: f.produksi.value,
+        hilang: f.hilang.value,
+        bbm: f.bbm.value
+      };
+      const ok = await postData(f, data);
+      document.getElementById('status').textContent = ok ? '✅ Data operasional terkirim.' : '❌ Gagal kirim data operasional.';
+      f.reset();
+    });
+
+    document.getElementById('breakdownForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const data = {
+        type: 'breakdown',
+        tanggal: f.tanggal.value,
+        unit: f.unit.value,
+        mulai: f.mulai.value,
+        selesai: f.selesai.value,
+        jenis: f.jenis.value,
+        sparepart: f.sparepart.value,
+        biaya_sparepart: f.biaya_sparepart.value,
+        teknisi: f.teknisi.value,
+        hilang_bd: f.hilang_bd.value
+      };
+      const ok = await postData(f, data);
+      document.getElementById('status').textContent = ok ? '✅ Data breakdown terkirim.' : '❌ Gagal kirim data breakdown.';
+      f.reset();
+    });
+  </script>
+</body>
+</html>
